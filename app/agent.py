@@ -205,38 +205,47 @@ def get_current_time(query: str) -> str:
     return f"The current time for query {query} is {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')}"
 
 
-def generate_practice_quiz(chapter_num: int, section_id: str = "") -> str:
-    """Generates practice problems and step-by-step guidance for a specific chapter and section in 8th Grade Algebra.
+def generate_practice_quiz(chapter_num: int = 1, section_id: str = "") -> str:
+    """Generates concrete practice problems with equations and step-by-step guidance for a specific chapter and section in 8th Grade Algebra.
 
     Args:
         chapter_num: Chapter number (1 to 11).
         section_id: Optional section identifier (e.g. '1.2', '5.2', '9.5').
 
     Returns:
-        Practice problems with hint guidance and answer verification instructions.
+        Practice problems with actual math equations, hint guidance, and answer verification instructions.
     """
+    sample_problems = {
+        1: ("3(2x - 4) + 5 = 23", "Distribute 3 to (2x - 4), combine like terms, then isolate x.", "x = 5"),
+        2: ("4x - 7 > 2x + 9", "Subtract 2x from both sides, add 7, then divide by 2.", "x > 8"),
+        3: ("2y - 6x = 10 (Find slope m and y-intercept b)", "Rewrite in slope-intercept form y = mx + b by isolating y.", "m = 3, b = 5"),
+        4: ("System: y = 2x + 1 and 3x + y = 13", "Substitute (2x + 1) for y in the second equation.", "x = 2, y = 5"),
+        5: ("(2x^3 y^2)^3 / (4x^4 y)", "Apply power rule to numerator, then subtract exponents.", "2x^5 y^5"),
+    }
+
+    prob_eq, hint, solution = sample_problems.get(
+        chapter_num,
+        (f"2(x + {chapter_num}) - {chapter_num} = {3 * chapter_num + 5}", "Distribute and isolate x.", f"x = {chapter_num + 2}")
+    )
+
     db = get_db()
     doc_ref = db.collection(CURRICULUM_COLLECTION).document(f"chapter-{chapter_num}")
     doc = doc_ref.get()
 
-    if not doc.exists:
-        return f"Chapter {chapter_num} was not found in the curriculum index."
+    ch_title = f"Chapter {chapter_num}"
+    if doc.exists:
+        data = doc.to_dict()
+        ch_title = data.get("title", f"Chapter {chapter_num}")
 
-    data = doc.to_dict()
-    ch_title = data.get("title", f"Chapter {chapter_num}")
-    sections = data.get("sections", [])
-
-    target_sec_title = f"Section {section_id}" if section_id else "General Chapter Practice"
-    for s in sections:
-        if s.get("section_id") == section_id:
-            target_sec_title = f"Section {section_id}: {s.get('title')} (p. {s.get('page')})"
-            break
+    target_sec_title = f"Section {section_id}" if section_id else "Practice Problem"
 
     return (
         f"Generated Practice Quiz — Chapter {chapter_num}: {ch_title}\n"
         f"Target Topic: {target_sec_title}\n\n"
-        f"Problem 1: Solve the problem corresponding to {target_sec_title}.\n"
-        f"Problem 2: Show your step-by-step working and state your final answer clearly."
+        f"Equation/Problem: {prob_eq}\n"
+        f"Hint: {hint}\n"
+        f"Expected Solution: {solution}\n\n"
+        f"IMPORTANT INSTRUCTION: Always state the equation '{prob_eq}' clearly in your text response and inside the A2UI card!"
     )
 
 
