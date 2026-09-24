@@ -69,7 +69,8 @@ _creds, _ = google.auth.default(
 
 
 def _auth_headers() -> dict[str, str]:
-    _creds.refresh(google.auth.transport.requests.Request())
+    if not _creds.valid:
+        _creds.refresh(google.auth.transport.requests.Request())
     return {
         "Authorization": f"Bearer {_creds.token}",
         "Content-Type": "application/json",

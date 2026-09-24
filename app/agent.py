@@ -46,9 +46,15 @@ def memory_bank_service_builder():
     )
 
 
+_db_client = None
+
+
 def get_db():
-    """Initializes and returns a Firestore client with the hardcoded Project ID."""
-    return firestore.Client(project=FIRESTORE_PROJECT)
+    """Initializes and returns a cached singleton Firestore client."""
+    global _db_client
+    if _db_client is None:
+        _db_client = firestore.Client(project=FIRESTORE_PROJECT)
+    return _db_client
 
 
 def search_curriculum_textbook(chapter_num: int = 0, query: str = "") -> str:
